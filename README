@@ -1,0 +1,32 @@
+Linux:
+ install required python libraries and run GA.py
+
+Win32:
+Fast run:
+python setup.py py2exe
+
+To Compile on clean Win XP:
+
+1. Install Python 2.7
+http://python.org/getit/
+
+2. Install py2exe
+http://sourceforge.net/projects/py2exe/files/py2exe/
+
+3. Install PyQt4:
+http://www.riverbankcomputing.co.uk/software/pyqt/download
+
+4. Install setuptools (easy_install)
+http://pypi.python.org/pypi/setuptools#windows
+
+5. Add C:\Python27\Scripts and C:\Python27 to the PATH variable
+
+6. Install lxml
+download latest tar.gz from here http://pypi.python.org/pypi/lxml
+and run inside the folder easy_install --allow-hosts=lxml.de,*.python.org lxml
+
+7. Find msvcp90.dll in Windows and copy it to the current directory (it's required by py2exe)
+
+8. Run python setup.py py2exe in the current directory
+
+Get your binary programm in the dist folder
