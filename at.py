@@ -71,7 +71,6 @@ def CalcAlt(conf,eqcoords,timebins):
   return Altitudes
 
 def GetAlt(conf,objects):
-  #timebins = numpy.concatenate((numpy.arange(12,24,conf.timebins),numpy.arange(0,12,conf.timebins)),axis=0)
   timebins = numpy.arange(0.0, 24.0, conf.timebins)
   for obj in objects.keys():
     objects[obj] = CalcAlt(conf,objects[obj],timebins)
@@ -83,21 +82,45 @@ def GetMax(x,y):
   xmax = x[ymaxindex]
   return xmax,ymax
 
-def Plot(objects, timebins):
-  fig = plt.figure(figsize=(15,12))
-  ax = fig.add_subplot(111)
-  ax.set_ylabel('Altitude (deg)')
-  ax.set_xlabel('UTC')
-  ax.set_xlim((0,24))
-  ax.set_ylim((0,95))
-  for obj in objects.keys():
-    alt = objects[obj]
-    xmax, ymax = GetMax(timebins,alt)
-    plt.text(xmax, ymax+1, obj, ha='center', va='center')
-    plt.plot( timebins, alt, 'g')
-    
-  plt.show()
-  return
+class Plot():
+  #Created this class because i need ax2 to be "global"
+  #see example http://matplotlib.sourceforge.net/examples/api/fahrenheit_celcius_scales.html
+  def __init__(self, objects, timebins):
+    self.fig = plt.figure(figsize=(15,12))
+    self.ax = self.fig.add_subplot(111)
+    #self.ax2 = self.ax.twinx() #airmass axis
+    #self.ax.callbacks.connect("ylim_changed", self.UpdateAx2)
+    self.ax.set_title("Altitudes on "+datetime.now().strftime("%d %b %Y"))
+    self.ax.set_ylabel('Altitude (deg)')
+    self.ax.set_xlabel('UTC')
+    xlim = 24-(timebins[1]-timebins[0])
+    self.ax.set_xlim((0,xlim))
+    self.ax.set_ylim((0,95))
+    #self.ax2.set_xlim((0,24))
+    #self.ax2.set_ylabel('Airmass')
+    for obj in objects.keys():
+      alt = objects[obj]
+      xmax, ymax = GetMax(timebins,alt)
+      self.ax.text(xmax, ymax+1, obj, ha='center', va='center')
+      self.ax.plot( timebins, alt, 'g')
+      if obj=="q1156*":
+	for i in range(len(timebins)):
+	  print timebins[i],alt[i]
+    #self.ax2.plot( [1.5,1.5], 'r')
+    self.ax.axhline(y=30, xmin=0, xmax=xlim, color='r')
+    self.ax.text(2, 31.5, "airmass=2.0",color='r', ha='center', va='center')
+    self.ax.axhline(y=41.45, xmin=0, xmax=xlim, color='r')
+    self.ax.text(2, 42.95, "airmass=1.5", color='r', ha='center', va='center')
+    plt.show()
+  def UpdateAx2(self,ax1):
+    y1, y2 = self.ax.get_ylim()
+    self.ax2.set_ylim(self.AirMass(y1), self.AirMass(y2))
+    self.ax2.figure.canvas.draw()
+  def AirMass(self,h):
+    secz = 1./math.cos(math.radians(90 - h))
+    X = secz-0.0018167*(secz-1)-0.002875*(secz-1)**2-0.0008083*(secz-1)**3
+    #X=secz
+    return X
 
 def main():
   conf = Config()
