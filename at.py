@@ -20,7 +20,8 @@ class Config():
     self.latitude  = config.getfloat('location', 'latitude')
     self.altitude  = config.getfloat('location', 'altitude')
     self.tabobpath = config.get('location', 'tabobpath')
-    self.timebins = config.getfloat('misc', 'timebins')
+    self.timebins  = config.getfloat('misc', 'timebins')
+    self.curtime   = config.getboolean('misc', 'curtime')
 
 def ReadTabob(conf):
   objects = {}
@@ -85,7 +86,7 @@ def GetMax(x,y):
 class Plot():
   #Created this class because i need ax2 to be "global"
   #see example http://matplotlib.sourceforge.net/examples/api/fahrenheit_celcius_scales.html
-  def __init__(self, objects, timebins):
+  def __init__(self, objects, timebins, conf):
     self.fig = plt.figure(figsize=(15,12))
     self.ax = self.fig.add_subplot(111)
     #self.ax2 = self.ax.twinx() #airmass axis
@@ -103,14 +104,13 @@ class Plot():
       xmax, ymax = GetMax(timebins,alt)
       self.ax.text(xmax, ymax+1, obj, ha='center', va='center')
       self.ax.plot( timebins, alt, 'g')
-      if obj=="q1156*":
-	for i in range(len(timebins)):
-	  print timebins[i],alt[i]
-    #self.ax2.plot( [1.5,1.5], 'r')
     self.ax.axhline(y=30, xmin=0, xmax=xlim, color='r')
     self.ax.text(2, 31.5, "airmass=2.0",color='r', ha='center', va='center')
     self.ax.axhline(y=41.45, xmin=0, xmax=xlim, color='r')
     self.ax.text(2, 42.95, "airmass=1.5", color='r', ha='center', va='center')
+    if conf.curtime:
+      curtime = datetime.now().hour + datetime.now().minute/60. + datetime.now().second/3600.
+      self.ax.axvline(x=curtime, ymin=0, ymax=95, color='gray')
     plt.show()
   def UpdateAx2(self,ax1):
     y1, y2 = self.ax.get_ylim()
@@ -126,7 +126,7 @@ def main():
   conf = Config()
   objects = ReadTabob(conf)
   objects, timebins = GetAlt(conf,objects)
-  Plot(objects, timebins)
+  Plot(objects, timebins, conf)
 
 if __name__ == '__main__':
   main()
